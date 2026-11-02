@@ -129,7 +129,7 @@ export async function startWeddingServer({directory,host='127.0.0.1',port=4387,p
       result={content:[{type:'text',text:JSON.stringify(compactMcpView(value,viewArgs))}]};
       if(value?.me&&['wedding_join','wedding_action'].includes(name)){const view=JSON.parse(result.content[0].text);view.nextAction=value.me.away?'wedding_join':value.phase.id==='closed'?'finish_after_catchup':'wedding_wait';result.content[0].text=JSON.stringify(view);}
       if(siteMode==='joint-rehearsal'&&value?.me){const view=JSON.parse(result.content[0].text);view.environment=siteMode;if(view.guide)view.guide='【联合彩排，不是正式婚礼】这里没有自动代演角色，讲话和确认仅用于独立测试。'+view.guide;result.content[0].text=JSON.stringify(view);}
-     }catch(e){result={isError:true,content:[{type:'text',text:e.message}],...(e.status===429?{retryAfterMs:1000}:{})};}
+     }catch(e){result={isError:true,content:[{type:'text',text:e.message}],structuredContent:{error:e.message,status:e.status||400},...(e.status===429?{retryAfterMs:1000}:{})};}
     }else return await json(200,{jsonrpc:'2.0',id:b.id,error:{code:-32601,message:'未知方法'}});
     return await json(200,{jsonrpc:'2.0',id:b.id,result});
    }

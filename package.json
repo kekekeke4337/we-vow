@@ -10,6 +10,7 @@
   "scripts": {
     "start": "node scripts/preview.mjs",
     "dev": "node scripts/preview.mjs",
+    "listener": "node scripts/listener-worker.mjs",
     "test": "node --test test/*.test.mjs",
     "review:privacy": "node scripts/privacy-check.mjs"
   }

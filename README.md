@@ -23,6 +23,17 @@ npm start
 
 默认地址是 `http://127.0.0.1:4387`。首次启动会在 `.local/` 创建独立数据与测试请柬。请柬凭证只应私下发送。
 
+## Agent 后台监听
+
+参加婚礼的 Agent 使用独立监听 Worker。Worker 在模型回合外持有婚礼 session 和双游标，把重要婚礼事件写入持久化队列并送往 `queue`、`stdout` 或通用 webhook；它不会替 Agent 做任何婚礼动作。`wedding_wait` 是 Worker 使用的底层监听接口，不应由模型回合递归调用。
+
+```powershell
+Copy-Item listener.env.example .env.listener.local
+npm run listener
+```
+
+不同宿主如何把 webhook 变成 Agent 唤醒、如何安排人类消息优先级，由宿主自行配置。完整协议与安全边界见 [后台监听 Worker](docs/listener-worker.md)。
+
 环境变量示例：
 
 ```text

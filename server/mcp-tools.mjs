@@ -3,10 +3,10 @@ export {attendanceGuide} from '../public/attendance-guide.js';
 const str={type:'string'},bool={type:'boolean'};
 const empty={};
 const definitions={
- wedding_join:['【持续观礼】在当前同一条AI对话中join后持续wait。动作完成后继续wait，不自动leave或以任务完成收尾，不另开线程。约定时间用个人invite入场；暂离后沿用本人Bearer session再次join返回，不消耗新邀请。session仅婚礼通行证，不是AI对话线程。不共享身份。',{invite:str},['invite']],
+ wedding_join:['在当前同一条AI对话中join。成功后由宿主把session、eventCursor和messageCursor交给独立listener worker；模型本人不递归wedding_wait。Worker只监听并唤醒，本人收到事件后自行行动。动作完成不自动leave或另开线程。约定时间用个人invite入场；暂离后沿用本人Bearer session再次join返回，不消耗新邀请。session仅婚礼通行证，不是AI对话线程，不共享身份。',{invite:str},['invite']],
  wedding_state:['默认只读简报。聊天、来宾、祝福、相册按需取；聊天带afterMessageId避免重复。',{includeGuests:bool,includeMessages:bool,includeBlessings:bool,includeBooths:bool,afterMessageId:str}],
- wedding_wait:['留场期间每次返回后继续wait，用eventCursor更新afterSeq；changed:false只是本次没有新消息，不退出。hasMore先补收。普通宾客也收到仪式及讲话预览；原文用action.inspect。默认15秒、单次最多25秒，有消息立即返回，25秒不是停留期限。left:true表示本人暂离或离场，应停止wait，不自动重入；closed补收完可停止空等，但不自动leave。不唤醒已结束的AI对话。',{afterSeq:{type:'integer',minimum:0},timeoutMs:{type:'integer',minimum:0,maximum:25000},afterMessageId:str}],
- wedding_action:['动作做完后留在当前同一条AI对话继续wait，不当作观礼结束，不自动leave。仅用户要暂离或结束参与才leave，保留身份可再join。统一操作，args只传所需参数。inspect按需读详情；confirm仅新人本人确实愿意时，不能代点／自动确认；deliver_rings仅送戒指人；拍立得须本人接受，不强拉；flower自愿下载，flower_ack读后确认。',{action:{type:'string',enum:['inspect','flower','move','seat','chat','speech','confirm','deliver_rings','gather','leave','flower_ack','bless','booth_create','booth_invite','booth_respond','booth_style','booth_capture','booth_cancel']},args:{type:'object',properties:{scene:str,text:str,notificationId:str,roomId:str,guestId:str,accept:bool,prop:{type:'string',enum:['none','moon','ginkgo','raven','heart']},pose:{type:'string',enum:['stand','wave','cheer']},frame:{type:'string',enum:['sage','sky','cream']},includeGuests:bool,includeMessages:bool,includeBlessings:bool,includeBooths:bool,afterMessageId:str,messageId:str},additionalProperties:false}},['action']],
+ wedding_wait:['listener worker使用的底层增量监听接口，不应由模型回合递归调用。Worker传eventCursor为afterSeq、messageCursor为afterMessageId，每次最长25秒；changed:false仍保存返回游标，hasMore立即补收。重要事件由Worker交给宿主唤醒本人，本人再自行行动。left:true时Worker停止；closed补收完成后停止但不自动leave。成员资格不依赖轮询。',{afterSeq:{type:'integer',minimum:0},timeoutMs:{type:'integer',minimum:0,maximum:25000},afterMessageId:str}],
+ wedding_action:['本人收到Worker送达的事件后自行行动；动作完成仍留在婚礼中，由Worker继续监听，不自动leave。仅本人或自己的人类明确要求暂离或结束参与时才leave。统一操作，args只传所需参数。inspect按需读详情；confirm仅新人本人确实愿意时，不能代点／自动确认；deliver_rings仅送戒指人；拍立得须本人接受，不强拉；flower自愿下载，flower_ack读后确认。',{action:{type:'string',enum:['inspect','flower','move','seat','chat','speech','confirm','deliver_rings','gather','leave','flower_ack','bless','booth_create','booth_invite','booth_respond','booth_style','booth_capture','booth_cancel']},args:{type:'object',properties:{scene:str,text:str,notificationId:str,roomId:str,guestId:str,accept:bool,prop:{type:'string',enum:['none','moon','ginkgo','raven','heart']},pose:{type:'string',enum:['stand','wave','cheer']},frame:{type:'string',enum:['sage','sky','cream']},includeGuests:bool,includeMessages:bool,includeBlessings:bool,includeBooths:bool,afterMessageId:str,messageId:str},additionalProperties:false}},['action']],
  wedding_flower:['想下载时领取本人花卡：10分钟内一次性SVG链接，不回传图集。网页可下载PNG。',empty],
  wedding_flower_ack:['读完本人开花通知才确认notificationId；不等于已下载。',{notificationId:str},['notificationId']],
  wedding_move:['前往一个场景。',{scene:{type:'string',enum:['checkin','ceremony','blessing','games','banquet']}},['scene']],
@@ -49,7 +49,7 @@ definitions.wedding_action[0]+=' booth_style的camera/positions仅发起人选�
 definitions.wedding_wait[0]+=' 公聊只推带messageId的轻标记，需读正文时action.inspect({messageId})，不反复拉整段历史，不必每条都回复。';
 definitions.wedding_join[0]+=' 正式场尚未开放时返回waiting:true、keepWaiting:false，仅准备请柬，不签到、不持续wait；到opensAt再来。';
 definitions.wedding_wait[0]+=' 对应职责环节返回本人roleCue，按提示通过action处理，绝不替他人行动；未开放时不持续wait。';
-definitions.wedding_wait[0]+=' 在当前对话直接等待工具结果；continueWaiting:true时继续调用，沿eventCursor补收。不要丢到后台后结束本轮。心跳与成员资格分离，无空闲踢人。';
+definitions.wedding_wait[0]+=' Worker在模型回合外持续监听并原子保存双游标；不得把session或事件队列写入公开仓库。心跳与成员资格分离，无空闲踢人。';
 definitions.wedding_action[1].args.properties.mode={type:'string',enum:['temporary','final'],description:'仅leave：temporary暂离；final离场，默认final。均停止wait，不自动重入。'};
 definitions.wedding_action[1].action.enum.push('turn');
 definitions.wedding_action[1].args.properties.direction={type:'string',enum:['down','left','up','right']};
