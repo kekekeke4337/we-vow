@@ -1,0 +1,103 @@
+/* Desktop keeps its original panels. Phones get a clear map and one drawer. */
+#interaction-panel{display:contents}
+.mobile-controls,.mobile-panel-close,.mobile-map-zoom{display:none}
+@media (max-width:700px), (max-width:1100px) and (max-height:600px){
+ :root{--phone-left:max(8px,env(safe-area-inset-left));--phone-right:max(8px,env(safe-area-inset-right));--phone-top:max(4px,env(safe-area-inset-top));--phone-bottom:max(6px,env(safe-area-inset-bottom))}
+ .garden-scene.active{height:100vh;height:100dvh;min-height:0;overflow:hidden}
+ .topbar{top:var(--phone-top);left:var(--phone-left);right:var(--phone-right);padding:0;min-height:44px;gap:8px;background:#fffdf2ed;border-radius:12px}
+ .topbar>div{gap:6px;min-width:0;padding:0 8px}
+ .topbar>div:first-child{flex:1}
+ .topbar small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;padding-left:6px}
+ .topbar b{white-space:nowrap;font-size:13px}.topbar .live-dot{flex-shrink:0}
+ .topbar .ghost{min-height:44px;padding:8px 12px;font-size:12px}
+ .topbar{display:block;left:auto;right:var(--phone-right);width:auto;min-height:0;background:none;border-radius:0;pointer-events:none}
+ .topbar>div:first-child{display:none}
+ .topbar>div:last-child{padding:0;gap:6px;pointer-events:auto}
+ .topbar a[href$="/rehearsal/"]{display:none}
+ .world-viewport{top:var(--phone-top);bottom:calc(var(--phone-bottom) + 54px)}
+ .world-track{width:var(--mobile-map-width,145vw);height:var(--mobile-map-height,48.333vw);min-height:100%;aspect-ratio:3 / 1}
+ .mobile-map-zoom{display:inline-flex;align-items:center;justify-content:center;min-width:44px}
+ .world-map{position:absolute;inset:0;width:100%;height:100%}
+ .world-arrow,.swipe-hint{display:none}
+ .map-hotspot{width:44px;height:44px;font-size:17px}
+ .map-hotspot span{top:46px;max-width:170px;font-size:10px;white-space:nowrap;padding:4px 8px}
+ .place-nav{left:var(--phone-left);right:calc(var(--phone-right) + 152px);bottom:var(--phone-bottom);width:auto;transform:none;display:flex;gap:0;min-height:46px;overflow-x:auto;padding:0;border-radius:12px}
+ .place-nav button{flex:1;min-width:44px;padding:4px 2px;font-size:10px;min-height:46px;border:0;white-space:nowrap}
+ .place-nav button span{display:block;font-size:14px}
+ .mobile-controls{position:absolute;z-index:15;right:var(--phone-right);bottom:var(--phone-bottom);display:flex;width:144px;min-height:46px;background:#fffdf2f5;border:1px solid #fff;border-radius:12px;padding:0}
+ .mobile-controls button{flex:1;min-width:44px;min-height:44px;border:0;border-radius:10px;background:transparent;color:#385347;font-size:12px}
+ .mobile-controls button[aria-expanded="true"]{background:#55765f;color:white}
+ .ceremony-card,.chat-panel,#interaction-panel{display:none;position:absolute;z-index:16;top:calc(var(--phone-top) + 50px);bottom:calc(var(--phone-bottom) + 58px);left:var(--phone-left);right:auto;width:min(360px,calc(100vw - var(--phone-left) - var(--phone-right)));max-height:none;margin:0;padding:14px 16px;overflow:auto;border:1px solid #d3ddc8;border-radius:14px;background:#fffdf5;box-shadow:0 8px 24px #294c4030;backdrop-filter:none}
+ #garden[data-mobile-panel="ceremony"] .ceremony-card,#garden[data-mobile-panel="chat"] .chat-panel,#garden[data-mobile-panel="actions"] #interaction-panel{display:block}
+ .mobile-panel-close{display:block;position:sticky;float:right;right:0;top:0;min-width:44px;min-height:44px;border:0;border-radius:10px;background:#fffdf5f5;color:#385347;font-size:24px;z-index:2}
+ .ceremony-card h2{font-size:18px;margin:8px 32px 8px 0}
+ .ceremony-card #moment-copy,.ceremony-card .authority-note,.ceremony-card .progress{display:block}
+ .ceremony-card p{font-size:12px;line-height:1.6}
+ #mobile-ceremony-controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+ #mobile-ceremony-controls button,#consent-action{min-height:44px}
+ .rehearsal-banner{margin-top:30px}
+ .chat-panel{padding:0;flex-direction:column}
+ #garden[data-mobile-panel="chat"] .chat-panel{display:flex}
+ .chat-panel>header{flex:none;padding:4px 12px;align-items:center;min-height:44px}
+ .chat-panel header button{min-width:44px;min-height:44px;font-size:22px}
+ .chat-panel .chat-list{flex:1;min-height:40px;height:auto;padding:4px 12px}
+ .chat-panel #chat-history{flex:none;font-size:11px;padding:4px;min-height:32px}
+ .chat-panel.collapsed #chat-history{display:none}
+ .chat-panel form{flex:none;padding:4px 8px;gap:4px}
+ #chat-input{height:44px;max-height:72px;margin:0;font-size:16px;padding:6px}
+ .chat-panel form button{min-width:44px;padding:6px}
+ #interaction-panel{padding-top:8px}
+ #interaction-panel .actions{clear:both}
+ #interaction-panel .actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));position:static;transform:none;max-width:none;padding:0;background:none;box-shadow:none;border:0;gap:6px}
+ #interaction-panel .actions button{min-height:58px;min-width:44px;padding:6px;background:#edf2e9;font-size:12px}
+ #interaction-panel .actions span{font-size:18px}
+ #interaction-panel #invitation-tools{position:static;display:flex;max-width:none;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:stretch}
+ #invitation-tools button{min-height:44px;border:1px solid #a2b7a4;border-radius:8px;background:#fffdf4;padding:8px;font-size:12px}
+ #my-role-note{max-width:100%;font-size:12px}
+ html[data-site-mode="joint-rehearsal"] .ceremony-card::before{content:'联合测试 · 非正式婚礼';display:block;color:#85692d;font-size:12px;margin-bottom:8px}
+ dialog,#bloom-dialog{max-width:calc(100vw - var(--phone-left) - var(--phone-right));max-height:calc(100dvh - 16px);padding:0;overflow:hidden}
+ .dialog-card{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;gap:8px;width:min(760px,calc(100vw - var(--phone-left) - var(--phone-right)));height:min(340px,calc(100vh - 16px));height:min(340px,calc(100dvh - 16px));max-height:none;min-height:0;padding:12px 16px;overflow:hidden;text-align:left}
+ .mobile-dialog-heading{grid-column:1 / -1;position:relative;min-height:36px;padding-right:44px}
+ .mobile-dialog-heading h2,.mobile-dialog-heading h3{font-size:19px;margin:4px 0;line-height:1.3}
+ .mobile-dialog-heading h3{font-size:15px}
+ .mobile-dialog-heading .eyebrow{display:none}
+ .mobile-dialog-heading>form{position:absolute;right:0;top:0;margin:0}
+ .mobile-dialog-body{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;font-size:13px;line-height:1.5}
+ .mobile-dialog-body p{margin:6px 0}
+ .mobile-dialog-actions,.booth-session-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+ .mobile-dialog-actions{grid-column:1 / -1;padding-top:6px;border-top:1px solid #d4ddcb;min-width:0}
+ .mobile-dialog-actions button{margin:0;padding:8px 12px;font-size:12px;line-height:1.3}
+ .mobile-dialog-visual{display:none;min-width:0;min-height:0;overflow:hidden}
+ .has-mobile-visual{grid-template-columns:minmax(120px,30%) minmax(0,1fr)}
+ .has-mobile-visual .mobile-dialog-visual{display:flex;grid-column:1;grid-row:1 / 4;align-items:center;justify-content:center}
+ .has-mobile-visual .mobile-dialog-heading,.has-mobile-visual .mobile-dialog-body,.has-mobile-visual .mobile-dialog-actions{grid-column:2}
+ .has-mobile-visual .mobile-dialog-heading{grid-row:1}.has-mobile-visual .mobile-dialog-body{grid-row:2}.has-mobile-visual .mobile-dialog-actions{grid-row:3}
+ #generated-flower,#bloom-flower{width:min(100%,200px);height:auto;aspect-ratio:1;margin:0}
+ #generated-flower .botanical,#bloom-flower .botanical{width:100%;height:100%;position:absolute;inset:0}
+ #generated-flower,#bloom-flower{position:relative;flex-shrink:1}
+ #photo-preview{min-height:0;margin:0;border:0;transform:none;max-height:100%;width:100%;overflow:hidden}
+ #photo-preview>svg{width:100%;height:auto;max-height:260px;object-fit:contain}
+ #photo-dialog .photo-card.has-mobile-visual{grid-template-columns:minmax(0,2.2fr) minmax(150px,1fr)}
+ #booth-preview{max-height:100%;min-height:0;overflow:hidden}
+ .booth-card #booth-preview canvas{width:auto;max-width:100%;height:auto;max-height:calc(100dvh - 48px);object-fit:contain;margin:0}
+ .dialog-close{position:absolute;float:none;top:-4px;right:-8px;min-width:44px;min-height:44px;margin:0;background:#fffdf3e8;border-radius:10px;z-index:3}
+ .mobile-dialog-heading>form .dialog-close{position:static}
+ .dialog-card button:not(.dialog-close),.dialog-card select{min-height:44px}
+ .dialog-card textarea,.dialog-card input,.dialog-card select{font-size:16px}
+ .booth-card label{max-width:100%;margin:4px 8px 4px 0}
+ .booth-card select{max-width:100%}
+ .blessing-wall{max-height:none;overflow:visible;padding:16px;gap:16px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+ .blessing-card textarea{min-height:56px;height:56px;margin:4px 0}
+ .paper-scene{min-height:100dvh;padding:12px}.invite-card,.arrival-card{padding:34px 20px}
+ .toast{max-width:calc(100vw - 24px);bottom:calc(var(--phone-bottom) + 60px);white-space:normal;pointer-events:none}
+}
+/* A portrait phone gives the photo its full width, not a tiny left thumbnail. */
+@media(max-width:700px) and (min-height:601px){
+ #photo-dialog .photo-card.has-mobile-visual{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto}
+ #photo-dialog .mobile-dialog-heading{grid-column:1;grid-row:1}
+ #photo-dialog .mobile-dialog-visual{grid-column:1;grid-row:2;width:100%}
+ #photo-dialog .mobile-dialog-body{grid-column:1;grid-row:3}
+ #photo-dialog .mobile-dialog-actions{grid-column:1;grid-row:4}
+ #photo-dialog #photo-preview>svg{max-height:none}
+}
+#photo-preview.front-photo-frame{background:#f6f0df;transform:none;border:0;box-shadow:none}

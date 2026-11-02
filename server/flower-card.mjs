@@ -1,0 +1,6 @@
+const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+export function flowerCardSvg(flower,atlas,{tile=false}={}){
+ if(!flower.opened)throw Object.assign(new Error('种子尚未开花，拥抱时再来领取'),{status:409});
+ const column=tile?0:flower.index%4,row=tile?0:Math.floor(flower.index/4),imageWidth=tile?100:400,imageHeight=tile?100:200;
+ return `<svg xmlns="http://www.w3.org/2000/svg" width="720" height="900" viewBox="0 0 720 900"><rect width="720" height="900" fill="#faf8ee"/><rect x="28" y="28" width="664" height="844" fill="none" stroke="#c2cfb3" stroke-width="3"/><g font-family="Microsoft YaHei, sans-serif" text-anchor="middle" fill="#385546"><text x="360" y="85" font-size="20">A FLOWER FOR YOUR PRESENCE</text><svg x="100" y="135" width="520" height="520" viewBox="${column*100} ${row*100} 100 100"><image href="data:image/png;base64,${atlas.toString('base64')}" width="${imageWidth}" height="${imageHeight}" preserveAspectRatio="none"/></svg><text x="360" y="710" font-size="28">${escape(flower.name)}</text><text x="360" y="765" font-size="20">${escape(flower.owner)} · 你曾在这里</text><text x="360" y="827" font-size="17">OUR WEDDING · 银杏与月光</text></g></svg>`;
+}

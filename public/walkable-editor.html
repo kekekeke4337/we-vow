@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>婚礼地图 · 可走区域画笔</title>
+<style>
+  :root{font-family:"Microsoft YaHei",system-ui,sans-serif;color:#283d33;background:#f6f1e4}
+  *{box-sizing:border-box}
+  body{margin:0;padding:16px}
+  header{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-bottom:10px}
+  h1{font-size:18px;margin:0 12px 0 0}
+  .hint{font-size:12px;color:#66756b}
+  .toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px;padding:8px;border:1px solid #d8d0bc;border-radius:12px;background:#fffdf5}
+  button,select{min-height:38px;border:1px solid #c9c1ae;border-radius:9px;background:#fffdf7;color:#2e493c;padding:6px 10px;font:inherit;cursor:pointer}
+  button[aria-pressed="true"]{background:#416a55;color:#fff;border-color:#416a55}
+  button:disabled{opacity:.45;cursor:default}
+  .group{display:flex;gap:4px;align-items:center;padding-right:10px;border-right:1px solid #e3dccb}
+  .group:last-child{border-right:0}
+  .swatch{display:inline-block;width:12px;height:12px;border-radius:3px;background:rgba(170,40,40,.65);margin-right:4px;vertical-align:-2px}
+  #viewport{overflow:auto;border:1px solid #b9b3a3;border-radius:12px;background:#d9d2c2;max-height:calc(100vh - 170px)}
+  #stage{position:relative;width:100%;margin:0 auto;aspect-ratio:var(--ratio,3)}
+  #map,#grid{position:absolute;inset:0;width:100%;height:100%;display:block}
+  #map{object-fit:fill;user-select:none;-webkit-user-drag:none}
+  #grid{touch-action:none;cursor:crosshair;image-rendering:pixelated}
+  #status{font-size:12px;color:#56685c;margin-top:8px}
+  @media(max-width:700px){body{padding:9px}h1{font-size:15px}#viewport{max-height:calc(100vh - 260px)}button,select{min-height:40px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>可走区域画笔</h1>
+  <span class="hint"><span class="swatch"></span>红色 = 不可走；透明 = 可走。桥面、门洞记得擦回可走。</span>
+</header>
+
+<div class="toolbar">
+  <div class="group">
+    <button id="mode-block" type="button" aria-pressed="true">涂阻挡</button>
+    <button id="mode-walk" type="button" aria-pressed="false">擦回可走</button>
+  </div>
+  <div class="group" id="brush-group">
+    <span class="hint">笔刷</span>
+    <button type="button" data-brush="1" aria-pressed="false">1×1</button>
+    <button type="button" data-brush="3" aria-pressed="true">3×3</button>
+    <button type="button" data-brush="5" aria-pressed="false">5×5</button>
+    <button type="button" data-brush="9" aria-pressed="false">9×9</button>
+  </div>
+  <div class="group">
+    <span class="hint">缩放</span>
+    <button type="button" data-zoom="1" aria-pressed="true">100%</button>
+    <button type="button" data-zoom="1.5" aria-pressed="false">150%</button>
+    <button type="button" data-zoom="2" aria-pressed="false">200%</button>
+  </div>
+  <div class="group">
+    <button id="undo" type="button">撤销</button>
+    <button id="reset" type="button">全部可走</button>
+  </div>
+  <div class="group">
+    <button id="export-png" type="button">导出 PNG</button>
+    <button id="export-json" type="button">导出 JSON</button>
+  </div>
+</div>
+
+<div id="viewport"><div id="stage"><img id="map" src="assets/wedding-map-v7-lossless.webp" alt="婚礼地图底图"><canvas id="grid"></canvas></div></div>
+<p id="status">正在加载地图……</p>
+<p class="hint">导出 JSON 后放到 <code>public/assets/walkable-mask-v1.json</code>，运行 <code>npm run build:walkable-mask</code> 更新运行时掩码。</p>
+
+<script>
+const GRID_WIDTH=300;
+const canvas=document.querySelector('#grid'),ctx=canvas.getContext('2d');
+const map=document.querySelector('#map'),stage=document.querySelector('#stage'),viewport=document.querySelector('#viewport');
+const status=document.querySelector('#status');
+let gridWidth=GRID_WIDTH,gridHeight=100,cells=[],blocked=0;
+let drawing=false,mode='block',brush=3,zoom=1,last=[];
+const undoStack=[];
+const storageKey='wedding.walkable-mask.v1';
+
+function count(){blocked=0;for(const v of cells)if(v)blocked++;}
+function render(){
+  ctx.clearRect(0,0,gridWidth,gridHeight);
+  ctx.fillStyle='rgba(170,38,38,.62)';
+  for(let y=0;y<gridHeight;y++)for(let x=0;x<gridWidth;x++)if(cells[y*gridWidth+x])ctx.fillRect(x,y,1,1);
+  ctx.strokeStyle='rgba(45,70,55,.20)';ctx.lineWidth=0.35;
+  for(let x=10;x<gridWidth;x+=10){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,gridHeight);ctx.stroke();}
+  for(let y=10;y<gridHeight;y+=10){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(gridWidth,y);ctx.stroke();}
+  if(last.length===2){
+    const half=(brush-1)/2,x0=Math.floor(last[0]-half),y0=Math.floor(last[1]-half);
+    ctx.strokeStyle='#fff';ctx.lineWidth=0.9;ctx.strokeRect(x0+.35,y0+.35,brush-.7,brush-.7);
+  }
+  count();status.textContent=`网格 ${gridWidth} × ${gridHeight} · 已标记不可走 ${blocked} 格（${(blocked/cells.length*100).toFixed(1)}%）`;
+  document.querySelector('#undo').disabled=!undoStack.length;
+}
+function position(event){
+  const rect=canvas.getBoundingClientRect();
+  const x=Math.floor((event.clientX-rect.left)/rect.width*gridWidth),y=Math.floor((event.clientY-rect.top)/rect.height*gridHeight);
+  return x>=0&&y>=0&&x<gridWidth&&y<gridHeight?[x,y]:null;
+}
+function stamp(x,y,value){
+  const half=(brush-1)/2;
+  for(let yy=Math.floor(y-half);yy<=Math.round(y+half);yy++)for(let xx=Math.floor(x-half);xx<=Math.round(x+half);xx++){
+    if(xx<0||yy<0||xx>=gridWidth||yy>=gridHeight)continue;
+    if(cells[yy*gridWidth+xx]!==value)cells[yy*gridWidth+xx]=value;
+  }
+}
+function snapshot(){undoStack.push(cells.slice());if(undoStack.length>40)undoStack.shift();}
+function point(event){const p=position(event);if(!p)return;last=p;stamp(p[0],p[1],mode==='block'?1:0);render();}
+canvas.addEventListener('pointerdown',event=>{if(!cells.length)return;event.preventDefault();canvas.setPointerCapture(event.pointerId);snapshot();drawing=true;point(event);});
+canvas.addEventListener('pointermove',event=>{if(!drawing)return;event.preventDefault();point(event);});
+canvas.addEventListener('pointerup',event=>{drawing=false;canvas.releasePointerCapture?.(event.pointerId);saveLocal();});
+canvas.addEventListener('pointercancel',()=>{drawing=false;saveLocal();});
+canvas.addEventListener('pointerleave',()=>{if(!drawing){last=[];render();}});
+
+function setMode(next){mode=next;document.querySelector('#mode-block').setAttribute('aria-pressed',String(next==='block'));document.querySelector('#mode-walk').setAttribute('aria-pressed',String(next==='walk'));}
+function setBrush(next){brush=next;for(const button of document.querySelectorAll('[data-brush]'))button.setAttribute('aria-pressed',String(Number(button.dataset.brush)===next));}
+function setZoom(next){zoom=next;stage.style.width=(100*next)+'%';for(const button of document.querySelectorAll('[data-zoom]'))button.setAttribute('aria-pressed',String(Number(button.dataset.zoom)===next));}
+document.querySelector('#mode-block').onclick=()=>setMode('block');
+document.querySelector('#mode-walk').onclick=()=>setMode('walk');
+for(const button of document.querySelectorAll('[data-brush]'))button.onclick=()=>setBrush(Number(button.dataset.brush));
+for(const button of document.querySelectorAll('[data-zoom]'))button.onclick=()=>setZoom(Number(button.dataset.zoom));
+document.querySelector('#undo').onclick=()=>{const previous=undoStack.pop();if(!previous)return;cells=previous;render();saveLocal();};
+document.querySelector('#reset').onclick=()=>{if(!confirm('把所有格子恢复为可走？'))return;snapshot();cells.fill(0);render();saveLocal();};
+
+function toRuns(){
+  const rows=[];
+  for(let y=0;y<gridHeight;y++){
+    const runs=[];let start=-1;
+    for(let x=0;x<gridWidth;x++){
+      const value=cells[y*gridWidth+x];
+      if(value&&start<0)start=x;
+      if(!value&&start>=0){runs.push([start,x-start]);start=-1;}
+    }
+    if(start>=0)runs.push([start,gridWidth-start]);
+    if(runs.length)rows.push([y,runs]);
+  }
+  return rows;
+}
+function fromRuns(rows){
+  if(!Array.isArray(rows)||rows.length>gridHeight)throw Error('无效的地图行');
+  const next=new Uint8Array(cells.length),seen=new Set();
+  for(const entry of rows){
+    if(!Array.isArray(entry)||entry.length!==2)throw Error('无效的地图行');
+    const [y,runs]=entry;
+    if(!Number.isInteger(y)||y<0||y>=gridHeight||seen.has(y)||!Array.isArray(runs)||runs.length>gridWidth)throw Error('无效的地图行');
+    seen.add(y);let end=0;
+    for(const run of runs){
+      if(!Array.isArray(run)||run.length!==2)throw Error('无效的地图区域');
+      const [x,length]=run;
+      if(!Number.isInteger(x)||!Number.isInteger(length)||x<end||length<1||x+length>gridWidth)throw Error('无效的地图区域');
+      next.fill(1,y*gridWidth+x,y*gridWidth+x+length);end=x+length;
+    }
+  }
+  cells=next;
+}
+function saveLocal(){try{localStorage.setItem(storageKey,JSON.stringify({width:gridWidth,height:gridHeight,rows:toRuns()}));}catch{}}
+function loadLocal(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(storageKey)||'null');
+    if(!saved||saved.width!==gridWidth||saved.height!==gridHeight)return false;
+    fromRuns(saved.rows);return true;
+  }catch{return false;}
+}
+function download(blob,name){
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+document.querySelector('#export-png').onclick=()=>{
+  const out=document.createElement('canvas');out.width=gridWidth;out.height=gridHeight;const c=out.getContext('2d');
+  const image=c.createImageData(gridWidth,gridHeight);
+  for(let i=0;i<cells.length;i++){const offset=i*4,value=cells[i]?0:255;image.data[offset]=value;image.data[offset+1]=value;image.data[offset+2]=value;image.data[offset+3]=255;}
+  c.putImageData(image,0,0);
+  out.toBlob(blob=>blob&&download(blob,'walkable-mask-v1.png'),'image/png');
+};
+document.querySelector('#export-json').onclick=()=>{
+  const value={version:1,width:gridWidth,height:gridHeight,blocked:blocked,rows:toRuns()};
+  download(new Blob([JSON.stringify(value)],{type:'application/json'}),'walkable-mask-v1.json');
+};
+
+async function setupMap(){
+  if(!map.naturalWidth||!map.naturalHeight)return;
+  const ratio=map.naturalWidth/map.naturalHeight;
+  gridWidth=GRID_WIDTH;gridHeight=Math.max(1,Math.round(GRID_WIDTH/ratio));
+  stage.style.setProperty('--ratio',String(ratio));canvas.width=gridWidth;canvas.height=gridHeight;
+  cells=new Uint8Array(gridWidth*gridHeight);
+  if(!loadLocal()){
+    try{
+      const response=await fetch('assets/walkable-mask-v1.json');
+      if(!response.ok)throw Error('地图区域加载失败');
+      const saved=await response.json();
+      if(saved.version!==1||saved.width!==gridWidth||saved.height!==gridHeight)throw Error('地图尺寸不匹配');
+      fromRuns(saved.rows);
+    }catch(error){status.textContent='现有可走区域未能加载，请刷新后再编辑：'+error.message;return;}
+  }
+  render();
+}
+if(map.complete&&map.naturalWidth)setupMap();else map.addEventListener('load',setupMap,{once:true});
+map.addEventListener('error',()=>{status.textContent='地图加载失败，请检查 assets/wedding-map-v7-lossless.webp';});
+</script>
+</body>
+</html>

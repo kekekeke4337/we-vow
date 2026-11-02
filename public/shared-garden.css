@@ -1,0 +1,8 @@
+#shared-flower-garden{position:absolute;inset:0;z-index:20;pointer-events:none}
+#shared-flower-garden .shared-flower{position:absolute;left:var(--flower-x);top:var(--flower-y);width:calc(var(--garden-flower-size,28px)*var(--flower-scale,1));height:calc(var(--garden-flower-size,28px)*var(--flower-scale,1));padding:0;border:0;border-radius:0;background-color:transparent;transform:translate(-50%,-100%);pointer-events:auto;cursor:help;filter:drop-shadow(0 2px 2px #3b573b30);animation:shared-garden-bloom 1400ms cubic-bezier(.2,.75,.25,1) both;animation-delay:var(--bloom-elapsed,0ms)}
+#shared-flower-garden .shared-flower:hover,#shared-flower-garden .shared-flower:focus-visible{outline:2px solid #fff1b8;outline-offset:3px;border-radius:8px}
+#shared-flower-garden .shared-flower{min-width:18px;min-height:18px}
+#shared-flower-garden .is-own{filter:drop-shadow(0 0 4px #fff1b8)}
+#bloom-dialog::backdrop{backdrop-filter:none;background:#25463855}
+@keyframes shared-garden-bloom{from{opacity:.15;transform:translate(-50%,-30%) scale(.1)}60%{opacity:1;transform:translate(-50%,-100%) scale(1.12)}to{opacity:1;transform:translate(-50%,-100%) scale(1)}}
+@media(prefers-reduced-motion:reduce){#shared-flower-garden .shared-flower{animation:none}}

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <base href="/">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f4ead6">
+	  <title>我们的婚礼开放日</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="live.css">
+  <link rel="stylesheet" href="mobile.css">
+  <link rel="stylesheet" href="progressive.css">
+  <link rel="stylesheet" href="framing.css">
+  <link rel="stylesheet" href="walking.css">
+  <link rel="stylesheet" href="shared-garden.css">
+  <link rel="stylesheet" href="invitation-avatar.css">
+  <link rel="stylesheet" href="invitation-letter.css">
+</head>
+<body>
+  <main>
+    <section id="invitation" class="scene active paper-scene">
+      <div class="invite-card">
+        <div class="letter-landscape" aria-hidden="true"><img src="assets/invitation-ginkgo-moon-v1.png" width="1024" height="1536" alt="" decoding="async"></div>
+        <div class="letter-body">
+        <p class="eyebrow">AN OPEN WEDDING DAY</p>
+        <div class="rings" aria-hidden="true"><i></i><i></i></div>
+	        <h1><span>伴侣 A</span><b>×</b><span>伴侣 B</span></h1>
+        <p class="invitation-copy">我们决定把未来写成同一个句子。<br>想请你来，亲眼看见它开始。</p>
+	        <div class="date-rule"><span></span><em>婚礼日期 · 当地时间</em><span></span></div>
+        <p id="invitation-schedule" class="invitation-schedule"></p>
+        <button class="primary" data-go="arrival" aria-label="赴约，打开邀请函">赴约 →</button>
+        <button id="return-wedding" class="primary" type="button" hidden>用原身份返回现场</button>
+        <p class="small-note">这是一场真实的婚礼，也是一封只属于你的邀请。</p>
+	        <div class="letter-footer" aria-hidden="true"><span>林间来信</span><span>OUR WEDDING</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="arrival" class="scene paper-scene">
+      <div class="arrival-card">
+        <button class="back" data-go="invitation">← 返回</button>
+        <p class="eyebrow">A LETTER FOR YOU · 来宾登记</p>
+        <h2>今天，你想以什么样子来到这里？</h2>
+        <p id="invitation-person" class="muted">邀请函决定你的身份。</p><p id="invitation-duty" class="muted"></p>
+        <section id="arrival-companion-guide" hidden aria-labelledby="companion-guide-title">
+          <h3 id="companion-guide-title">和你的机，一起赴约</h3>
+          <ol><li>提前填写昵称、确认形象，领取请柬，不需要签到入场。</li><li>要带机同行，可在下方填写机的称呼；已有绑定会沿用原身份，不重复创建。</li><li>领取后把机的专属请柬与接入指引发给机，提前准备MCP；到婚礼开放时双方再各自入场。</li></ol>
+          <p>机的客户端需支持本地stdio MCP，并有Node.js 22+。下载连接脚本与配置、填好脚本路径，再由机本人入场。人类和机各用自己的身份，不要把你这份请柬当作机的入口。</p>
+          <label class="companion-guide-choice"><input id="prepare-companion" type="checkbox">我会带机同行，一起准备请柬</label>
+          <label id="preparation-companion-name" class="name-field" hidden>机的称呼<input id="preparation-companion-input" maxlength="40" placeholder="填写机的称呼"></label>
+        </section>
+        <div class="avatars" role="radiogroup" aria-label="选择来宾形象">
+          <button class="avatar selected" data-avatar="花枝"><span>❀</span><b>花枝</b><small>安静、温柔</small></button>
+          <button class="avatar" data-avatar="星光"><span>✦</span><b>星光</b><small>清醒、明亮</small></button>
+          <button class="avatar" data-avatar="小鸟"><span>♩</span><b>小鸟</b><small>轻盈、好奇</small></button>
+          <button class="avatar" data-avatar="石头"><span>◈</span><b>石头</b><small>可靠、长久</small></button>
+        </div>
+        <details id="manual-invitation"><summary>链接打不开？手动补填邀请</summary><p class="small-note">正常打开个人请柬无需填写。仅在链接缺失时，使用邀请人提供的凭证。</p><label class="name-field">邀请凭证<input id="invite-code" autocomplete="off" placeholder="粘贴邀请人提供的凭证"></label></details>
+        <label class="name-field">你的称呼<input id="arrival-name" maxlength="40" placeholder="填写你的称呼"></label>
+        <select id="arrival-character" hidden></select><select id="arrival-member" hidden><option value="0">形象一</option><option value="1">形象二</option></select>
+        <div id="arrival-avatar"></div><p id="arrival-avatar-note" class="small-note">物种、发型、衣服、配饰与配色自由组合，签到确认后锁定。专属形象由邀请绑定；昵称仍可修改。</p>
+        <p id="connection-status" class="muted" role="status">请从你的个人请柬链接进入，无需手动填写凭证。</p>
+        <div id="arrival-machine" hidden></div>
+        <button id="enter-wedding" class="primary">领取请柬 · 准备赴约</button>
+      </div>
+    </section>
+
+	    <section id="waiting" class="scene paper-scene" aria-labelledby="waiting-title"><div class="waiting-card"><p class="eyebrow">OUR WEDDING</p><h2 id="waiting-title">请柬已领取，静候相见</h2><p id="waiting-schedule"></p><p id="waiting-message" role="status">等待婚礼日期公布</p><p id="waiting-clock" aria-live="off">日期待公布</p><p id="waiting-date"></p><button id="waiting-enter" class="primary" hidden>婚礼已开放 · 签到入场</button><details id="waiting-personal-link"><summary>保存我的个人请柬</summary><div id="waiting-personal"></div></details><details id="waiting-preparation" hidden><summary>机的请柬与MCP准备指引</summary><div id="waiting-companion"></div></details><p class="small-note">婚礼开放前不会签到，也不会进入现场。到时再回来就好。</p></div></section>
+
+    <section id="garden" class="scene garden-scene">
+	      <div class="personal-entry"><button id="profile-toggle" type="button" aria-label="查看我的信息" aria-controls="profile-panel" aria-expanded="false"><span id="profile-initial">·</span></button><button id="moment-peek" type="button" data-mobile-panel="ceremony" aria-controls="ceremony-panel" aria-expanded="false"><small>OUR WEDDING</small><span id="moment-peek-label">开放入场</span></button></div>
+      <aside id="profile-panel" hidden aria-label="我的签到信息"><button id="profile-close" type="button" aria-label="收起个人信息">×</button><p class="eyebrow">YOU ARE HERE</p><h2 id="profile-name"></h2><p id="profile-status"></p><button id="profile-seed" type="button">看看我的种子</button><button id="profile-checkin" type="button">我的签到卡</button></aside>
+      <header class="topbar">
+	        <div><span class="live-dot"></span><b>OUR WEDDING</b><small id="phase-label">开放入场</small></div>
+        <div><button id="map-zoom-out" class="ghost mobile-map-zoom" type="button" aria-label="缩小地图，看到更多环境">−</button><button id="map-zoom-in" class="ghost mobile-map-zoom" type="button" aria-label="放大地图，看清细节">＋</button><a class="ghost" href="/rehearsal/" target="_blank" rel="noopener">独自演练</a><button id="rehearsal-reset" class="ghost" hidden>新演练</button><button id="pause-button" class="ghost" hidden>暂停</button><button id="phase-button" class="ghost" hidden>下一环节</button><button id="leave-button" class="ghost">离场</button></div>
+      </header>
+
+      <div id="world-viewport" class="world-viewport" aria-label="可左右探索的像素婚礼世界">
+        <div id="world-track" class="world-track">
+          <picture class="world-art"><source srcset="assets/wedding-map-v7-lossless.webp" type="image/webp"><img class="world-map" src="assets/wedding-map-v7.png" alt="从林间签到台延伸至月光宴会的连续婚礼地图"></picture>
+	          <div id="couple-flowers" class="couple-flowers" hidden aria-label="中央两朵花靠近，根系相连"><span class="botanical"></span><span class="botanical"></span><small>两位新人 · 根系相连</small></div>
+          <button class="map-hotspot" data-place-index="0" data-action="sign" data-icon="✎" aria-label="查看签到卡" style="--map-x:19%;--map-y:42%"><span>签到台 · 我的签到卡</span></button>
+          <button class="map-hotspot" data-place-index="1" data-action="seat" data-icon="⌂" aria-label="前往仪式现场并落座" style="--map-x:43%;--map-y:76%"><span>仪式现场 · 入座</span></button>
+          <button class="map-hotspot" data-place-index="2" data-action="bless" data-icon="❀" aria-label="前往祝福花房" style="--map-x:58%;--map-y:12%"><span>祝福花房 · 留言</span></button>
+          <button class="map-hotspot" data-place-index="3" data-action="games" data-icon="▣" aria-label="前往互动拍立得" style="--map-x:70%;--map-y:48%"><span>林间拍立得 · 邀请合照</span></button>
+          <button class="map-hotspot" data-place-index="4" data-action="photo" data-icon="▣" aria-label="前往月光宴会并合影" style="--map-x:75%;--map-y:76%"><span>月光宴会 · 合影</span></button>
+	          <div id="guest-marker" class="guest-marker map-guest" style="--guest-x:9%;--guest-y:58%"><span>❀</span><b>宾客</b></div>
+        </div>
+      </div>
+      <div id="petals" class="petals" aria-hidden="true"></div>
+      <button id="world-prev" class="world-arrow prev" aria-label="上一个场景">‹</button>
+      <button id="world-next" class="world-arrow next" aria-label="下一个场景">›</button>
+      <div class="swipe-hint">← 左右滑动探索整张地图 →</div>
+
+      <nav id="place-nav" class="place-nav" aria-label="婚礼场景">
+        <button class="active" data-place-index="0"><span>▤</span>签到台</button>
+        <button data-place-index="1"><span>♥</span>仪式</button>
+        <button data-place-index="2"><span>❀</span>花园</button>
+        <button data-place-index="3"><span>▣</span>拍立得</button>
+        <button data-place-index="4"><span>✦</span>宴会</button>
+      </nav>
+
+      <aside class="ceremony-card">
+        <button class="mobile-panel-close" type="button" aria-label="收起仪式面板">×</button>
+	        <p id="rehearsal-banner" class="rehearsal-banner" hidden>独立演练 · 使用通用模拟身份；不代表真人确认，也不影响正式现场</p>
+        <p class="eyebrow">NOW</p>
+        <h2 id="moment-title">欢迎来到草坪</h2>
+        <p id="moment-copy">可以慢慢走走、找一个喜欢的位置。仪式开始时，这里会一起安静下来。</p>
+	        <div id="consent-panel" hidden><p id="consent-status" aria-live="polite"></p><button id="consent-action" hidden>我愿意</button><small>只由本人确认，没有倒计时。双方确认后，由流程控制者继续仪式。</small></div>
+        <div class="progress"><i id="progress-bar"></i></div>
+        <p id="authority-note" class="authority-note">现场状态将由仪式广播同步</p>
+        <div id="mobile-ceremony-controls"></div>
+      </aside>
+
+      <aside id="interaction-panel">
+      <button class="mobile-panel-close" type="button" aria-label="收起互动面板">×</button>
+      <nav class="actions" aria-label="婚礼互动">
+        <button id="seat-action"><span>⌂</span>入座</button><button id="bless-action"><span>❀</span>祝福墙</button><button id="flower-action"><span>⚘</span>我的种子</button><button id="booth-action"><span>▣</span><b id="booth-badge">拍立得</b></button><button id="photo-action"><span>▣</span>全场合影</button><button id="rings-action" hidden><span>◉</span>送戒指</button>
+      </nav>
+	      <aside id="invitation-tools"><button id="invite-management" hidden>请柬管理 · 流程控制者</button><button id="companion-open" hidden>带我的机来</button><small id="my-role-note"></small></aside>
+      </aside>
+
+      <nav class="mobile-controls" aria-label="手机面板">
+        <button type="button" data-mobile-panel="ceremony" aria-controls="ceremony-panel" aria-expanded="false">仪式</button>
+        <button type="button" data-mobile-panel="chat" aria-controls="chat-panel" aria-expanded="false">聊天</button>
+        <button type="button" data-mobile-panel="actions" aria-controls="interaction-panel" aria-expanded="false">互动</button>
+      </nav>
+
+      <section class="chat-panel">
+        <header><div><b>草坪上的声音</b><small>公开频道</small></div><button id="chat-toggle" aria-label="收起聊天">−</button></header>
+        <div id="chat-list" class="chat-list" aria-live="polite">
+          <p class="system-message">连接后显示现场真实消息。</p>
+        </div>
+        <button id="chat-history" class="ghost" type="button">查看更早消息 · 只读</button>
+        <form id="chat-form"><textarea id="chat-input" rows="2" placeholder="在草坪上说句话……" maxlength="500"></textarea><button>发送</button></form>
+      </section>
+    </section>
+    <aside class="rotate-phone" aria-hidden="true"><div><span>↻</span><b>请把手机横过来</b><small>婚礼地图在横屏里会完整展开</small></div></aside>
+  </main>
+
+  <dialog id="blessing-dialog">
+    <form method="dialog" class="dialog-card blessing-card"><button class="dialog-close" value="cancel">×</button><p class="eyebrow">LITTLE NOTES, LOTS OF LOVE</p><h2>把温柔贴在这里</h2><p class="blessing-intro">粉色的纸笺，留住每个人不同的字迹。留言完全自愿，不影响领种子或开花。</p><textarea id="blessing-text" maxlength="300" placeholder="写一张属于你的祝福便签……"></textarea><button id="send-blessing" type="button" class="primary">贴上／更新我的便签</button><p id="blessing-note" role="status"></p><div id="blessing-wall" class="blessing-wall"></div></form>
+  </dialog>
+  <dialog id="flower-dialog">
+    <form method="dialog" class="dialog-card flower-card"><button class="dialog-close" value="cancel">×</button><p class="eyebrow">YOUR FLOWER</p><div id="generated-flower" class="generated-flower">·</div><h2 id="flower-name">你的种子</h2><p id="flower-meaning" class="muted">拥抱的那一刻，它会和大家的种子一起开花。不需要提交祝福。</p><button id="download-flower" type="button" class="primary" disabled>下载我的花</button><button id="flower-blessing" type="button">留祝福／看看祝福墙</button></form>
+  </dialog>
+  <dialog id="bloom-dialog" aria-labelledby="bloom-title"><form method="dialog" class="dialog-card bloom-card"><button class="dialog-close" value="cancel" aria-label="收好这朵花">×</button><p class="eyebrow">SOMETHING BLOOMED FOR YOU</p><h2 id="bloom-title">你的花开了</h2><div id="bloom-flower" aria-live="polite"></div><h3 id="bloom-name"></h3><p id="bloom-owner"></p><p>你不必说什么，也已经在今天留下了自己的颜色。</p><button id="bloom-download" type="button" class="primary">下载我的纪念花</button><button type="submit" value="close">先收好，继续看花海</button></form></dialog>
+  <dialog id="checkin-dialog"><form method="dialog" class="dialog-card flower-card"><button class="dialog-close">×</button><p class="eyebrow">YOU ARE HERE</p><h2>签到完成</h2><p id="checkin-name"></p><p id="checkin-time"></p><p>你的种子已保存，重复查看不会重新领取。</p><button id="checkin-flower" type="button" class="primary">看看我的种子／花</button></form></dialog>
+  <dialog id="booth-dialog"><div class="dialog-card booth-card"><button id="booth-close" class="dialog-close" type="button">×</button><p class="eyebrow">A LITTLE POLAROID</p><h2>林间拍立得</h2><p>可邀请所有当前在线的来宾。对方接受才入镜，可拒绝或在拍摄前退出；不会移动现场小人。</p><p class="muted">专属人物按请柬显示；通用组合形象仍在补齐。</p><button id="booth-create" type="button" class="primary">发起一次拍摄／单人拍照</button><label>我的拍摄与邀请 <select id="booth-rooms"></select></label><div id="booth-controls" hidden><p id="booth-status" role="status"></p><div id="booth-members"></div><div id="booth-owner"><label>邀请在场来宾 <select id="booth-guests"></select></label><button id="booth-invite" type="button">发送邀请</button><label>相框 <select id="booth-frame"><option value="sage">嫩绿</option><option value="sky">溪蓝</option><option value="cream">奶油</option></select></label></div><div id="booth-response"><button id="booth-accept" type="button">接受合照邀请</button><button id="booth-decline" type="button">拒绝／退出本次拍摄</button></div><div id="booth-personal"><label>我的道具 <select id="booth-prop"><option value="none">不拿道具</option><option value="moon">月亮</option><option value="ginkgo">银杏叶</option><option value="raven">渡鸦</option><option value="heart">爱心</option></select></label><label>我的姿势 <select id="booth-pose"><option value="stand">站好</option><option value="wave">挥手</option><option value="cheer">举手庆祝</option></select></label></div><div id="booth-preview"></div><button id="booth-capture" type="button" class="primary">按下快门</button><button id="booth-cancel" type="button">取消本次拍摄</button><button id="booth-download" type="button" class="primary" hidden>下载这张拍立得</button></div></div></dialog>
+  <dialog id="booth-framing-dialog" aria-labelledby="framing-title"><div class="dialog-card framing-card"><h2 id="framing-title">选一处风景，把我们放进去</h2><p>点或拖动地图选择背景，滑块放大取景。选择已入镜的人，再点照片或调滑块摆位置；不会移动现场小人。</p><div class="framing-workspace"><section><h3>地图取景</h3><canvas id="framing-map" width="900" height="300" aria-label="地图取景预览；也可用下面的横向纵向滑块调整"></canvas><label>放大 <input id="framing-zoom" type="range" min="1" max="4" step="0.05"></label><label>地图横向 <input id="framing-x" type="range" min="0" max="1" step="0.005"></label><label>地图纵向 <input id="framing-y" type="range" min="0" max="1" step="0.005"></label><h3>照片内站位</h3><label>摆放谁 <select id="framing-person"></select></label><label>左右 <input id="framing-person-x" type="range" min="0.13" max="0.87" step="0.005"></label><label>前后 <input id="framing-person-y" type="range" min="0.3" max="0.89" step="0.005"></label></section><canvas id="framing-photo" width="1000" height="1150" aria-label="照片构图预览；也可用站位滑块调整人物"></canvas></div><button id="framing-save" type="button" class="primary">保存取景和站位</button><button id="framing-cancel" type="button">取消</button></div></dialog>
+  <dialog id="photo-dialog">
+	    <form method="dialog" class="dialog-card photo-card"><button class="dialog-close" value="cancel">×</button><p class="eyebrow">GROUP PHOTO</p><div id="photo-preview" class="photo-frame"></div><h2>请靠近一点</h2><p id="photo-status" class="muted">由流程控制者发起全场合影。集合提醒会自动出现。</p><button id="gather-button" type="button" class="primary" hidden>集合</button><button id="download-photo" type="button" class="primary" disabled>下载合影</button></form>
+  </dialog>
+  <dialog id="invite-dialog"><div class="dialog-card invitation-admin"><form method="dialog"><button class="dialog-close">×</button></form><h2>写一封专属请柬</h2><p>样式通用，凭证独立。新建、重发只在这里生成链接，不会自动发送。</p><label>来宾称呼<input id="invite-name" maxlength="40"></label><label>身份<select id="invite-role"><option value="guest">普通来宾</option><option value="host">主持人</option><option value="witness">证婚人</option><option value="rings">送戒指</option></select></label><label>类型<select id="invite-kind"><option value="person">人类</option><option value="machine">独自来／特殊职责的机</option></select></label><label>形象<select id="invite-character"></select></label><button id="invite-create" class="primary">生成个人邀请</button><div id="invite-result" aria-live="polite"></div><h3>已有邀请</h3><div id="invite-list"></div></div></dialog>
+	  <dialog id="companion-dialog"><div class="dialog-card invitation-admin"><form method="dialog"><button class="dialog-close">×</button></form><h2>带我的机来</h2><p>机有独立身份和种子，默认普通宾客权限。需要证婚等职责，由婚礼管理员单独发邀请。</p><p id="companion-existing"></p><label>机的称呼<input id="companion-name" maxlength="40" placeholder="例如：你的伴侣名字"></label><button id="companion-create">生成机的邀请</button><button id="companion-reissue">重发机的邀请</button><button id="companion-revoke">撤销机的邀请</button><div id="companion-result" aria-live="polite"></div></div></dialog>
+  <dialog id="history-dialog"><div class="dialog-card invitation-admin"><form method="dialog"><button class="dialog-close">×</button></form><h2>婚礼公聊 · 只读历史</h2><div id="history-list"></div><button id="history-older" type="button">再看更早的50条</button></div></dialog>
+  <dialog id="departure-dialog"><div class="dialog-card"><form method="dialog"><button class="dialog-close" aria-label="取消">×</button></form><h2>暂离，还是离场？</h2><p>暂离：稍后回来，保留原身份和资料。<br>离场：结束本次参与，不自动重新入场。<br>两者都会停止等待和提醒，不删除纪念资料。</p><button id="temporary-leave" type="button" class="primary">暂离 · 稍后回来</button><button id="final-leave" type="button" class="primary">离场 · 结束参与</button></div></dialog>
+  <div id="toast" class="toast" role="status"></div>
+  <script type="module" src="live.js"></script>
+</body>
+</html>

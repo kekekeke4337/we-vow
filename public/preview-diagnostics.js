@@ -1,0 +1,16 @@
+export const previewBuild='preview-recovery-20261101-v4';
+// Deliberately no application state, session, invite, query, hash or chat text.
+export function collectPreviewDiagnostics(){
+ const round=n=>Math.round(n*10)/10,rect=el=>{const r=el.getBoundingClientRect();return {x:round(r.x),y:round(r.y),width:round(r.width),height:round(r.height)};};
+ const ids=['booth-dialog','booth-preview','booth-framing-dialog','framing-map','framing-photo'];
+ const elements=Object.fromEntries(ids.map(id=>{const el=document.getElementById(id);if(!el)return [id,{missing:true}];const s=getComputedStyle(el),value={...rect(el),display:s.display,visibility:s.visibility,opacity:s.opacity,cssWidth:s.width,cssHeight:s.height,maxWidth:s.maxWidth,maxHeight:s.maxHeight,hidden:el.hidden,state:el.dataset.state,error:el.dataset.error,open:el.tagName==='DIALOG'?el.open:undefined,ancestors:[]};
+  for(let p=el.parentElement;p&&p!==document.body;p=p.parentElement){const c=getComputedStyle(p);value.ancestors.push({tag:p.tagName,id:p.id,...rect(p),display:c.display,visibility:c.visibility,opacity:c.opacity,gridRows:c.gridTemplateRows,overflowX:c.overflowX,overflowY:c.overflowY});}
+  const canvas=el.tagName==='CANVAS'?el:el.querySelector('canvas');if(canvas){const r=rect(canvas);value.canvas={width:canvas.width,height:canvas.height,rect:r};const mirror=document.getElementById((canvas.id||'booth-photo')+'-image');if(mirror)value.imageFallback={...rect(mirror),loaded:mirror.complete&&mirror.naturalWidth>0};try{const data=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;let opaque=0;for(let i=3;i<data.length;i+=4)if(data[i])opaque++;value.canvas.paintedPixels=opaque;}catch{value.canvas.readable=false;}}
+  return [id,value];}));
+ const known=/\/(?:framing\.css|mobile\.css|mobile-dialogs\.js|activities\.js|booth-framing\.js|map-art\.js|preview-diagnostics\.js|wedding-map-v7(?:-lossless)?\.(?:webp|png))$|\/assets\/sprites\/[a-z0-9-]+\.png$/;
+ const resources=performance.getEntriesByType('resource').flatMap(r=>{const path=new URL(r.name,location.href).pathname;return known.test(path)?[{file:path.split('/').at(-1),durationMs:round(r.duration),bytes:r.encodedBodySize}]:[];});
+ return {build:previewBuild,path:location.pathname,userAgent:navigator.userAgent,viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio,visualWidth:window.visualViewport?.width,visualHeight:window.visualViewport?.height},elements,resources};
+}
+export function installPreviewDiagnostics(parent){
+ const details=document.createElement('details'),summary=document.createElement('summary'),button=document.createElement('button'),output=document.createElement('textarea'),note=document.createElement('p');details.className='preview-diagnostics';summary.textContent='预览有问题？展开诊断';button.type='button';button.textContent='生成／复制预览诊断';output.readOnly=true;output.hidden=true;output.rows=5;output.setAttribute('aria-label','不含邀请或聊天的预览诊断');note.textContent='只读取画布尺寸、可见性和素材加载情况，不发送数据；可复制给维护者定位。';button.onclick=async()=>{output.value=JSON.stringify(collectPreviewDiagnostics(),null,2);output.hidden=false;try{await navigator.clipboard.writeText(output.value);button.textContent='已复制，可发给维护者';}catch{output.focus();output.select();button.textContent='已生成，请长按文本复制';}};details.append(summary,note,button,output);parent.append(details);
+}

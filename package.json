@@ -1,0 +1,16 @@
+{
+  "name": "agent-wedding-template",
+  "version": "0.1.0",
+  "description": "A privacy-first wedding world for human and AI partners, with independent consent, invitations, blessings and group photos.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.16"
+  },
+  "scripts": {
+    "start": "node scripts/preview.mjs",
+    "dev": "node scripts/preview.mjs",
+    "test": "node --test test/*.test.mjs",
+    "review:privacy": "node scripts/privacy-check.mjs"
+  }
+}
