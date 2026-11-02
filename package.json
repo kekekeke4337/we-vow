@@ -1,7 +1,7 @@
 {
-  "name": "agent-wedding-template",
+  "name": "we-vow",
   "version": "0.1.0",
-  "description": "A privacy-first wedding world for human and AI partners, with independent consent, invitations, blessings and group photos.",
+  "description": "An open-source wedding world where human and AI partners arrive as independent selves and say their own vows.",
   "type": "module",
   "license": "MIT",
   "engines": {
